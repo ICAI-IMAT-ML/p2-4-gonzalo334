@@ -45,6 +45,8 @@ class LinearRegressor:
             X, 0, 1, axis=1
         )  # Adding a column of ones for intercept
 
+        X_with_bias = np.hstack((np.ones((X.shape[0], 1)), X))
+
         if method == "least_squares":
             self.fit_multiple(X_with_bias, y)
         elif method == "gradient_descent":
@@ -65,10 +67,16 @@ class LinearRegressor:
             None: Modifies the model's coefficients and intercept in-place.
         """
         # Replace this code with the code you did in the previous laboratory session
+        #columna_intercept = np.ones((X.shape[0], 1))
+        #X = np.hstack((columna_intercept, X))
 
-        # Store the intercept and the coefficients of the model
-        self.intercept = None
-        self.coefficients = None
+        X_transpose = np.transpose(X)
+        
+        w = np.dot(np.dot(np.linalg.inv(np.dot(X_transpose, X)), X_transpose), y)
+
+        self.intercept = w[0]
+        self.coefficients = w[1:]
+
 
     def fit_gradient_descent(self, X, y, learning_rate=0.01, iterations=1000):
         """
@@ -91,19 +99,19 @@ class LinearRegressor:
         )  # Small random numbers
         self.intercept = np.random.rand() * 0.01
 
-        # Implement gradient descent (TODO)
+        # Implement gradient descent
         for epoch in range(iterations):
-            predictions = None
+            predictions = np.dot(X, np.concatenate(self.coefficients, self.intercept))
             error = predictions - y
 
-            # TODO: Write the gradient values and the updates for the paramenters
-            gradient = None
+            # Write the gradient values and the updates for the paramenters
+            gradient = 1/m * np.sum(error)
             self.intercept -= None
             self.coefficients -= None
 
             # TODO: Calculate and print the loss every 10 epochs
             if epoch % 1000 == 0:
-                mse = None
+                mse = np.mean(error**2)
                 print(f"Epoch {epoch}: MSE = {mse}")
 
     def predict(self, X):
@@ -125,8 +133,13 @@ class LinearRegressor:
 
         if self.coefficients is None or self.intercept is None:
             raise ValueError("Model is not yet fitted")
+        
+        if np.ndim(X) == 1:
+            return self.intercept + self.coefficients * X
+        else:
+            return self.intercept + np.dot(X, self.coefficients)
 
-        return None
+        
 
 
 def evaluate_regression(y_true, y_pred):
@@ -142,16 +155,16 @@ def evaluate_regression(y_true, y_pred):
     """
 
     # R^2 Score
-    # TODO
-    r_squared = None
-
+    rss = np.sum((y_true-y_pred)**2)
+    tss = np.sum((y_true-y_true.mean())**2)
+    r_squared = 1 - rss / tss 
+    
     # Root Mean Squared Error
-    # TODO
-    rmse = None
+    mse = 1/y_true.shape[0] * np.sum((y_true-y_pred)**2)
+    rmse = np.sqrt(mse)
 
     # Mean Absolute Error
-    # TODO
-    mae = None
+    mae = 1/y_true.shape[0] * np.sum(abs(y_true-y_pred))  #   Podríamos usar len(y_true) o la media en vez de 1/N y sum
 
     return {"R2": r_squared, "RMSE": rmse, "MAE": mae}
 
