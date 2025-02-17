@@ -41,9 +41,6 @@ class LinearRegressor:
         if np.ndim(X) == 1:
             X = X.reshape(-1, 1)
 
-        X_with_bias = np.insert(
-            X, 0, 1, axis=1
-        )  # Adding a column of ones for intercept
 
         X_with_bias = np.hstack((np.ones((X.shape[0], 1)), X))
 
@@ -101,15 +98,15 @@ class LinearRegressor:
 
         # Implement gradient descent
         for epoch in range(iterations):
-            predictions = np.dot(X, np.concatenate(self.coefficients, self.intercept))
+            predictions = np.dot(X, np.concatenate([self.coefficients, self.intercept]))
             error = predictions - y
 
             # Write the gradient values and the updates for the paramenters
             gradient = 1/m * np.sum(error)
-            self.intercept -= None
-            self.coefficients -= None
+            self.intercept -= learning_rate * gradient
+            self.coefficients -= learning_rate * np.dot(np.transpose(X[:, 1:]), error) / m
 
-            # TODO: Calculate and print the loss every 10 epochs
+            # Calculate and print the loss every 10 epochs
             if epoch % 1000 == 0:
                 mse = np.mean(error**2)
                 print(f"Epoch {epoch}: MSE = {mse}")
@@ -184,20 +181,22 @@ def one_hot_encode(X, categorical_indices, drop_first=False):
     """
     X_transformed = X.copy()
     for index in sorted(categorical_indices, reverse=True):
-        # TODO: Extract the categorical column
-        categorical_column = None
+        # Extract the categorical column
+        categorical_column = X[:, index]
 
-        # TODO: Find the unique categories (works with strings)
-        unique_values = None
+        # Find the unique categories (works with strings)
+        unique_values = np.unique(categorical_column)
 
-        # TODO: Create a one-hot encoded matrix (np.array) for the current categorical column
-        one_hot = None
+        # Create a one-hot encoded matrix (np.array) for the current categorical column
+        one_hot = np.zeros((X.shape[0], len(unique_values)))
+        for i, unique_value in enumerate(unique_values):
+            one_hot[:, i] = (categorical_column == unique_value).astype(float)
 
         # Optionally drop the first level of one-hot encoding
         if drop_first:
             one_hot = one_hot[:, 1:]
 
-        # TODO: Delete the original categorical column from X_transformed and insert new one-hot encoded columns
-        X_transformed = None
-
+        # Delete the original categorical column from X_transformed and insert new one-hot encoded columns
+        X_transformed = np.delete(X_transformed, index, axis=1)
+        X_transformed = np.insert(X_transformed, index, one_hot, axis=1)
     return X_transformed
