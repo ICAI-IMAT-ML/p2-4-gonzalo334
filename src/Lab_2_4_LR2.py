@@ -47,7 +47,7 @@ class LinearRegressor:
         if method == "least_squares":
             self.fit_multiple(X_with_bias, y)
         elif method == "gradient_descent":
-            self.fit_gradient_descent(X_with_bias, y, learning_rate, iterations)
+            return self.fit_gradient_descent(X_with_bias, y, learning_rate, iterations)
 
     def fit_multiple(self, X, y):
         """
@@ -77,7 +77,7 @@ class LinearRegressor:
 
     def fit_gradient_descent(self, X, y, learning_rate=0.01, iterations=1000):
         """
-        Fit the model using either normal equation or gradient descent.
+        Fit the model using gradient descent and track progress.
 
         Args:
             X (np.ndarray): Independent variable data (2D array), with bias.
@@ -86,31 +86,35 @@ class LinearRegressor:
             iterations (int): Number of iterations for gradient descent.
 
         Returns:
-            None: Modifies the model's coefficients and intercept in-place.
+            None: Updates the model's coefficients and intercept in-place.
         """
-
-        # Initialize the parameters to very small values (close to 0)
-        m = len(y)
-        self.coefficients = (
-            np.random.rand(X.shape[1] - 1) * 0.01
-        )  # Small random numbers
+        m = len(y)  # Number of samples
+        self.coefficients = np.random.rand(X.shape[1] - 1) * 0.01  # Small random numbers
         self.intercept = np.random.rand() * 0.01
 
-        # Implement gradient descent
         for epoch in range(iterations):
-            
+            # Compute predictions
             predictions = np.dot(X, np.hstack([self.intercept, self.coefficients]))
+
+            # Compute error
             error = predictions - y
 
-            # Write the gradient values and the updates for the paramenters
-            gradient = 1/m * np.dot(np.transpose(X), error)
+
+            # Compute gradients
+            gradient = (1 / m) * np.dot(np.transpose(X), error)            
+            
+            # Update parameters
             self.intercept -= learning_rate * gradient[0]
             self.coefficients -= learning_rate * gradient[1:]
 
-            # Calculate and print the loss every 10 epochs
-            if epoch % 1000 == 0:
-                mse = 1/2 * np.mean(error**2)
-                print(f"Epoch {epoch}: MSE = {mse}")
+            # Compute and store loss
+            mse = 1 / m * np.sum(error ** 2)
+            
+            # Print progress
+            if epoch % 100 == 0:
+                print(f"Iteration {epoch}: MSE = {mse}")
+
+    
 
     def predict(self, X):
         """
@@ -135,7 +139,7 @@ class LinearRegressor:
         if np.ndim(X) == 1:
             return self.intercept + self.coefficients * X
         else:
-            return self.intercept + np.dot(self.coefficients, X)
+            return self.intercept + np.dot(X, self.coefficients)
 
         
 
