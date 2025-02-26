@@ -92,6 +92,10 @@ class LinearRegressor:
         self.coefficients = np.random.rand(X.shape[1] - 1) * 0.01  # Small random numbers
         self.intercept = np.random.rand() * 0.01
 
+        loss_history = []
+        w_history = []
+        b_history = []                
+
         for epoch in range(iterations):
             # Compute predictions
             predictions = np.dot(X, np.hstack([self.intercept, self.coefficients]))
@@ -109,10 +113,16 @@ class LinearRegressor:
 
             # Compute and store loss
             mse = 1 / m * np.sum(error ** 2)
+            loss_history.append(mse)
+            w_history.append(self.coefficients.copy())
+            b_history.append(self.intercept)
+
             
             # Print progress
             if epoch % 100 == 0:
                 print(f"Iteration {epoch}: MSE = {mse}")
+
+        return loss_history, b_history, w_history
 
     
 
